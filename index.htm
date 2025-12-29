@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gündelik Hayatlar</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+      font-family: 'Montserrat', sans-serif;
+      overflow: hidden;
+    }
+
+    h1#title {
+      color: white;
+      font-size: 3em;
+      margin-bottom: 20px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+    }
+
+    #video-container {
+      position: relative;
+      width: 90%;
+      max-width: 800px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(255, 165, 0, 0.4);
+      margin-bottom: 20px; /* İpucu için boşluk bırakıldı */
+    }
+
+    video {
+      width: 100%;
+      display: block;
+    }
+
+    /* #hint artık video konteynerine göre konumlanmayacak */
+    #hint {
+      /* Statik konumlandırma */
+      position: relative; 
+      /* İçerik hizalama (Video Container'ın altındaki merkez) */
+      background: none; /* Arkaplan kaldırıldı */
+      border: none; /* Çerçeve kaldırıldı */
+      padding: 10px 0;
+      font-size: 16px; 
+      font-weight: 900;
+      color: #FF8C00; 
+      letter-spacing: 1px;
+      text-align: center;
+      /* Animasyon katmanından ve videodan bağımsız hale getirildi */
+    }
+
+    #transition-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #FF8C00;
+      z-index: 5;
+      pointer-events: none;
+      transition: transform 0.4s ease-out;
+    }
+
+    .animate-left {
+      transform: translateX(0);
+    }
+    .hide-left {
+      transform: translateX(-100%);
+    }
+
+    .animate-right {
+      transform: translateX(0);
+    }
+    .hide-right {
+      transform: translateX(100%);
+    }
+  </style>
+</head>
+<body>
+
+<h1 id="title">Gündelik Hayatlar</h1>
+
+<div id="video-container">
+  <div id="transition-overlay" class="hide-left"></div>
+  
+  <video id="currentVideo" controls>
+    <source src="video1.mp4" type="video/mp4">
+  </video>
+</div>
+
+<div id="hint">A = VİDEO A | B = VİDEO B</div>
+
+<script>
+  const currentVideo = document.getElementById('currentVideo');
+  const videos = ["video1.mp4", "video2.mp4"];
+  const overlay = document.getElementById('transition-overlay');
+  let index = 0;
+  let sharedTime = 0; 
+
+  function handleTransition() {
+    overlay.classList.remove('hide-left', 'hide-right');
+    
+    if (index === 0) {
+        overlay.classList.add('hide-right');
+    } else {
+        overlay.classList.add('hide-left');
+    }
+
+    setTimeout(() => {
+        if (index === 0) {
+            overlay.classList.remove('hide-right');
+            overlay.classList.add('animate-left');
+        } else {
+            overlay.classList.remove('hide-left');
+            overlay.classList.add('animate-right');
+        }
+
+        setTimeout(() => {
+            loadVideoContent();
+            
+            if (index === 0) {
+                overlay.classList.add('hide-left');
+                overlay.classList.remove('animate-left');
+            } else {
+                overlay.classList.add('hide-right');
+                overlay.classList.remove('animate-right');
+            }
+        }, 350);
+    }, 50);
+  }
+
+  function loadVideoContent() {
+    const nextSrc = videos[index];
+    sharedTime = currentVideo.currentTime; 
+    currentVideo.src = nextSrc;
+    currentVideo.load();
+    currentVideo.onloadedmetadata = () => {
+      if (sharedTime > 0) {
+        currentVideo.currentTime = sharedTime;
+      }
+      currentVideo.play();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+     loadVideoContent();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    let newIndex = -1;
+    if (e.key.toLowerCase() === 'a') {
+      newIndex = 0;
+    }
+    if (e.key.toLowerCase() === 'b') {
+      newIndex = 1;
+    }
+    
+    if (newIndex !== -1 && newIndex !== index) {
+        index = newIndex;
+        handleTransition();
+    }
+  });
+
+  currentVideo.addEventListener('ended', () => {
+    index = (index + 1) % videos.length;
+    loadVideoContent();
+  });
+</script>
+
+</body>
+</html>
